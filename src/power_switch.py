@@ -45,13 +45,13 @@ def send_power_restart(ip):
     assert(r.status_code == 200)
 
 
-def telnet_to_alif_fibre_command(ip, command):
+def telnet_to_alif_fibre_command(ip):
     telnet = TelnetService(ip)
     telnet.do_dvix_test_command(b"fibre phy 1")
     return telnet.do_dvix_test_command(b"fibre phy 1")
     
 
-def telnet_to_alif_net_command(ip, command):
+def telnet_to_alif_net_command(ip):
     telnet = TelnetService(ip)
     return telnet.do_dvix_test_command(b"net 8")
 
