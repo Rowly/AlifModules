@@ -64,7 +64,8 @@ if __name__ == "__main__":
     for guard in GUARDS:
         send_power_on(guard)
     while True:
-        logging.info("ADDER: Execution {}".format(executions =+ 1))
+        executions =+ 1
+        logging.info("ADDER: Execution {}".format(executions))
         for guard in GUARDS:
             send_power_restart(guard)
         time.sleep(300)
