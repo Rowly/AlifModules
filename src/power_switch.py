@@ -46,12 +46,14 @@ def send_power_restart(ip):
 
 
 def telnet_to_alif_fibre_command(ip):
+    print("Fibre get")
     telnet = TelnetService(ip)
     telnet.do_dvix_test_command(b"fibre phy 1\n")
     return telnet.do_dvix_test_command(b"fibre phy 1\n")
     
 
 def telnet_to_alif_net_command(ip):
+    print("Net get")
     telnet = TelnetService(ip)
     return telnet.do_dvix_test_command(b"net 8\n")
 
@@ -64,27 +66,33 @@ if __name__ == "__main__":
     for guard in GUARDS:
         send_power_on(guard)
     while True:
-        executions =+ 1
-        logging.info("ADDER: Execution {}".format(executions))
-        for guard in GUARDS:
-            send_power_restart(guard)
-        time.sleep(300)
-        for key, value in TESTING.items():
-            logging.info("ADDER: Module {}".format(key))
-            fibre_result_a = telnet_to_alif_fibre_command(value[0])
-            net_result_a = telnet_to_alif_net_command(value[0])
-            fibre_result_b = telnet_to_alif_fibre_command(value[1])
-            net_result_b = telnet_to_alif_net_command(value[1])
-            fibre_a_flag = "Link UP" in fibre_result_a
-            fibre_b_flag = "Link UP" in fibre_result_b
-            net_a_flag = "SYNC OK; AN OK;" in net_result_a
-            net_b_flag = "SYNC OK; AN OK;" in net_result_b
-            logging.info("ADDER: Fibre - {} {} Net - {} {}".format(fibre_a_flag, fibre_b_flag, net_a_flag, net_b_flag))
-            if fibre_a_flag and fibre_b_flag and net_a_flag and net_b_flag:
-                passes =+ 1
-            else:
-                fails =+ 1
-            logging.info("ADDER: Passes {} Fails {}".format(passes, fails))
+        try:
+            executions =+ 1
+            logging.info("ADDER: Execution {}".format(executions))
+            for guard in GUARDS:
+                send_power_restart(guard)
+            time.sleep(300)
+            for key, value in TESTING.items():
+                logging.info("ADDER: Module {}".format(key))
+                logging.info("Adder: Telnet too {} & {}".format(value[0], value[1])
+                fibre_result_a = telnet_to_alif_fibre_command(value[0])
+                net_result_a = telnet_to_alif_net_command(value[0])
+                fibre_result_b = telnet_to_alif_fibre_command(value[1])
+                net_result_b = telnet_to_alif_net_command(value[1])
+                fibre_a_flag = "Link UP" in fibre_result_a
+                fibre_b_flag = "Link UP" in fibre_result_b
+                net_a_flag = "SYNC OK; AN OK;" in net_result_a
+                net_b_flag = "SYNC OK; AN OK;" in net_result_b
+                logging.info("ADDER: Fibre - {} {} Net - {} {}".format(fibre_a_flag, fibre_b_flag, net_a_flag, net_b_flag))
+                if fibre_a_flag and fibre_b_flag and net_a_flag and net_b_flag:
+                    passes =+ 1
+                else:
+                    fails =+ 1
+                logging.info("ADDER: Passes {} Fails {}".format(passes, fails))
+        except KeyboardInterrupt:
+            logging_stop()
+            break
+
 
             
             
