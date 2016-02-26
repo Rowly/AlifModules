@@ -69,12 +69,12 @@ if __name__ == "__main__":
         for guard in GUARDS:
             send_power_restart(guard)
         time.sleep(300)
-        for (k,v) in TESTING:
-            logging.info("ADDER: Module {}".format(k))
-            fibre_result_a = telnet_to_alif_fibre_command(v[0])
-            net_result_a = telnet_to_alif_net_command(v[0])
-            fibre_result_b = telnet_to_alif_fibre_command(v[1])
-            net_result_b = telnet_to_alif_net_command(v[1])
+        for key, value in TESTING.items():
+            logging.info("ADDER: Module {}".format(key))
+            fibre_result_a = telnet_to_alif_fibre_command(value[0])
+            net_result_a = telnet_to_alif_net_command(value[0])
+            fibre_result_b = telnet_to_alif_fibre_command(value[1])
+            net_result_b = telnet_to_alif_net_command(value[1])
             fibre_a_flag = "Link UP" in fibre_result_a
             fibre_b_flag = "Link UP" in fibre_result_b
             net_a_flag = "SYNC OK; AN OK;" in net_result_a
