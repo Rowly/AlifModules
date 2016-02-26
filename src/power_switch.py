@@ -47,13 +47,13 @@ def send_power_restart(ip):
 
 def telnet_to_alif_fibre_command(ip):
     telnet = TelnetService(ip)
-    telnet.do_dvix_test_command(b"fibre phy 1")
-    return telnet.do_dvix_test_command(b"fibre phy 1")
+    telnet.do_dvix_test_command(b"fibre phy 1\n")
+    return telnet.do_dvix_test_command(b"fibre phy 1\n")
     
 
 def telnet_to_alif_net_command(ip):
     telnet = TelnetService(ip)
-    return telnet.do_dvix_test_command(b"net 8")
+    return telnet.do_dvix_test_command(b"net 8\n")
 
 
 if __name__ == "__main__":

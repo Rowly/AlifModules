@@ -18,7 +18,7 @@ class TelnetService():
         self.telnet.read_until(b"$")
         self.telnet.write(b"dvix_test\n")
         self.telnet.read_until(b"test>")
-        self.telnet.write(command + "\n")
+        self.telnet.write(command)
         result = self.telnet.read_all()
         self.telnet.read_until(b"test>")
         self.telnet.write(b"q\n")
