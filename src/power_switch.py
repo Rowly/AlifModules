@@ -15,7 +15,7 @@ TESTING = {"CopperSFP": ["10.10.10.151", "10.10.10.152"],
            "sm30km": ["10.10.10.151", "10.10.10.152"]}
 
 def logging_start():
-    logging.basicConfig(filename="/var/log/alif-modules/result.log",
+    logging.basicConfig(filename="result.log",
                         format="%(asctime)s:%(levelname)s:%(message)s",
                         level=logging.INFO)
     logging.info("ADDER: ==== Started Logging ====")
