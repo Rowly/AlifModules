@@ -8,11 +8,11 @@ from telnet_service import TelnetService
 
 # GUARDS = ["10.10.10.101", "10.10.10.102", "10.10.10.10.3"]
 GUARDS = ["10.10.10.104"]
-TESTING = {"CopperSFP": ["10.10.10.151", "10.10.10.152"],
-           "mm2km": ["10.10.10.151", "10.10.10.152"],
-           "mm550m": ["10.10.10.151", "10.10.10.152"],
-           "sm10km": ["10.10.10.151", "10.10.10.152"],
-           "sm30km": ["10.10.10.151", "10.10.10.152"]}
+TESTING = {"CopperSFP": ["10.10.10.151", "10.10.10.152"]}
+           #"mm2km": ["10.10.10.151", "10.10.10.152"],
+           #"mm550m": ["10.10.10.151", "10.10.10.152"],
+           #"sm10km": ["10.10.10.151", "10.10.10.152"],
+           #"sm30km": ["10.10.10.151", "10.10.10.152"]}
 
 def logging_start():
     logging.basicConfig(filename="result.log",
@@ -46,16 +46,13 @@ def send_power_restart(ip):
 
 
 def telnet_to_alif_fibre_command(ip):
-    print("Fibre get")
     telnet = TelnetService(ip)
-    telnet.do_dvix_test_command(b"fibre phy 1\n")
-    return telnet.do_dvix_test_command(b"fibre phy 1\n")
+    return telnet.do_dvix_test_command(b"fibre phy 1")
     
 
 def telnet_to_alif_net_command(ip):
-    print("Net get")
     telnet = TelnetService(ip)
-    return telnet.do_dvix_test_command(b"net 8\n")
+    return telnet.do_dvix_test_command(b"net 8")
 
 
 if __name__ == "__main__":
@@ -67,14 +64,14 @@ if __name__ == "__main__":
         send_power_on(guard)
     while True:
         try:
-            executions =+ 1
-            logging.info("ADDER: Execution {}".format(executions))
+            executions += 1
+            logging.info("ADDER: =====Execution {}=====".format(executions))
             for guard in GUARDS:
                 send_power_restart(guard)
-            time.sleep(300)
+            time.sleep(180)
             for key, value in TESTING.items():
                 logging.info("ADDER: Module {}".format(key))
-                logging.info("Adder: Telnet too {} & {}".format(value[0], value[1])
+                logging.info("ADDER: Devices {} & {}".format(value[0], value[1]))
                 fibre_result_a = telnet_to_alif_fibre_command(value[0])
                 net_result_a = telnet_to_alif_net_command(value[0])
                 fibre_result_b = telnet_to_alif_fibre_command(value[1])
@@ -83,12 +80,13 @@ if __name__ == "__main__":
                 fibre_b_flag = "Link UP" in fibre_result_b
                 net_a_flag = "SYNC OK; AN OK;" in net_result_a
                 net_b_flag = "SYNC OK; AN OK;" in net_result_b
-                logging.info("ADDER: Fibre - {} {} Net - {} {}".format(fibre_a_flag, fibre_b_flag, net_a_flag, net_b_flag))
+                logging.info("ADDER: 'fibre phy 1' check - {} {}".format(fibre_a_flag, fibre_b_flag))
+                logging.info("ADDER: 'net 8' check - {} {}".format(net_a_flag, net_b_flag))
                 if fibre_a_flag and fibre_b_flag and net_a_flag and net_b_flag:
-                    passes =+ 1
+                    passes += 1
                 else:
-                    fails =+ 1
-                logging.info("ADDER: Passes {} Fails {}".format(passes, fails))
+                    fails += 1
+                logging.info("ADDER: =====Passes {} Fails {}=====".format(passes, fails))
         except KeyboardInterrupt:
             logging_stop()
             break
