@@ -6,13 +6,13 @@ import os
 from telnet_service import TelnetService
 
 
-# GUARDS = ["10.10.10.101", "10.10.10.102", "10.10.10.10.3"]
-GUARDS = ["10.10.10.104"]
-TESTING = {"CopperSFP": ["10.10.10.151", "10.10.10.152"]}
-           #"mm2km": ["10.10.10.151", "10.10.10.152"],
-           #"mm550m": ["10.10.10.151", "10.10.10.152"],
-           #"sm10km": ["10.10.10.151", "10.10.10.152"],
-           #"sm30km": ["10.10.10.151", "10.10.10.152"]}
+GUARDS = ["10.10.10.101", "10.10.10.102", "10.10.10.103", "10.10.10.104", "10.10.10.105"]
+TESTING = {"CopperSFP 10/100/1000 RJ45 SGMI": ["10.10.10.151", "10.10.10.152"],
+           "MultiMode 1310 LC 2km": ["10.10.10.151", "10.10.10.152"],
+           "MultiMode 850 LC 550m": ["10.10.10.151", "10.10.10.152"]
+           "SingleMode 1310 LC 10km": ["10.10.10.151", "10.10.10.152"],
+           " SingleMode 1310 LC 30km": ["10.10.10.151", "10.10.10.152"]
+           }
 
 def logging_start():
     logging.basicConfig(filename="result.log",
@@ -57,36 +57,65 @@ def telnet_to_alif_net_command(ip):
 
 if __name__ == "__main__":
     executions = 0
-    passes = 0
-    fails = 0
     logging_start()
+    """
+    For each 1Guard ensure they are powered on
+    """
     for guard in GUARDS:
         send_power_on(guard)
     while True:
+        results = []
         try:
             executions += 1
             logging.info("ADDER: =====Execution {}=====".format(executions))
+            """
+            For each 1Guard start a restart cycle
+            """
             for guard in GUARDS:
                 send_power_restart(guard)
+            """
+            Wait 3 minutes to ensure ALIFs have rebooted
+            """
             time.sleep(180)
+            """
+            For each module telnet into the corresponding devices and
+            return the value from 'net 8'
+            """
             for key, value in TESTING.items():
                 logging.info("ADDER: Module {}".format(key))
                 logging.info("ADDER: Devices {} & {}".format(value[0], value[1]))
-                fibre_result_a = telnet_to_alif_fibre_command(value[0])
-                net_result_a = telnet_to_alif_net_command(value[0])
-                fibre_result_b = telnet_to_alif_fibre_command(value[1])
-                net_result_b = telnet_to_alif_net_command(value[1])
-                fibre_a_flag = "Link UP" in fibre_result_a
-                fibre_b_flag = "Link UP" in fibre_result_b
+                """
+                In the case of the CopperSFP module also telnet to get the result
+                of 'fibre phy 1'
+                """
+                if key == "CopperSFP":
+                    fibre_result_a = telnet_to_alif_fibre_command(value[0])
+                    fibre_result_b = telnet_to_alif_fibre_command(value[1])
+                    fibre_a_flag = "Link UP" in fibre_result_a
+                    fibre_b_flag = "Link UP" in fibre_result_b
+                else:
+                    net_result_a = telnet_to_alif_net_command(value[0])
+                    net_result_b = telnet_to_alif_net_command(value[1])
+                 
                 net_a_flag = "SYNC OK; AN OK;" in net_result_a
                 net_b_flag = "SYNC OK; AN OK;" in net_result_b
-                logging.info("ADDER: 'fibre phy 1' check - {} {}".format(fibre_a_flag, fibre_b_flag))
-                logging.info("ADDER: 'net 8' check - {} {}".format(net_a_flag, net_b_flag))
-                if fibre_a_flag and fibre_b_flag and net_a_flag and net_b_flag:
-                    passes += 1
+                
+                """
+                Form the results line for logging and append it to the list of results
+                """
+                if key == "CopperSFP":
+                    results.append("{} 'fibre phy 1' check {} {}\n" +
+                                   "{} 'net 8' check {} {}".format(key, fibre_a_flag, fibre_b_flag,
+                                                                   key, net_a_flag, net_b_flag))
                 else:
-                    fails += 1
-                logging.info("ADDER: =====Passes {} Fails {}=====".format(passes, fails))
+                    results.append("{} 'net 8' check {} {}".format(key, net_a_flag, net_b_flag))
+            
+            """
+            Log each result in turn
+            """
+            for result in results:
+                logging.info("ADDER: {}".format(result))
+                
         except KeyboardInterrupt:
             logging_stop()
             break
