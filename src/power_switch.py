@@ -6,12 +6,13 @@ import os
 from telnet_service import TelnetService
 
 
-GUARDS = ["10.10.10.101", "10.10.10.102", "10.10.10.103", "10.10.10.104", "10.10.10.105"]
-TESTING = {"CopperSFP 10/100/1000 RJ45 SGMI": ["10.10.10.151", "10.10.10.152"],
-           "MultiMode 1310 LC 2km": ["10.10.10.151", "10.10.10.152"],
-           "MultiMode 850 LC 550m": ["10.10.10.151", "10.10.10.152"]
+GUARDS = ["10.10.10.104"]
+TESTING = {
+           "CopperSFP 10/100/1000 RJ45 SGMI": ["10.10.10.155", "10.10.10.156"],
+           "MultiMode 1310 LC 2km": ["10.10.10.157", "10.10.10.158"],
+           "MultiMode 850 LC 550m": ["10.10.10.159", "10.10.10.160"],
            "SingleMode 1310 LC 10km": ["10.10.10.151", "10.10.10.152"],
-           " SingleMode 1310 LC 30km": ["10.10.10.151", "10.10.10.152"]
+           "SingleMode 1310 LC 30km": ["10.10.10.153", "10.10.10.154"]
            }
 
 def logging_start():
@@ -57,6 +58,8 @@ def telnet_to_alif_net_command(ip):
 
 if __name__ == "__main__":
     executions = 0
+    passes = 0
+    fails = 0
     logging_start()
     """
     For each 1Guard ensure they are powered on
@@ -81,21 +84,21 @@ if __name__ == "__main__":
             For each module telnet into the corresponding devices and
             return the value from 'net 8'
             """
-            for key, value in TESTING.items():
-                logging.info("ADDER: Module {}".format(key))
-                logging.info("ADDER: Devices {} & {}".format(value[0], value[1]))
+            for module, ips in TESTING.items():
+                logging.info("ADDER: Module {}".format(module))
+                logging.info("ADDER: Devices {} & {}".format(ips[0], ips[1]))
                 """
                 In the case of the CopperSFP module also telnet to get the result
                 of 'fibre phy 1'
                 """
-                if key == "CopperSFP":
-                    fibre_result_a = telnet_to_alif_fibre_command(value[0])
-                    fibre_result_b = telnet_to_alif_fibre_command(value[1])
+                if module == "CopperSFP 10/100/1000 RJ45 SGMI":
+                    fibre_result_a = telnet_to_alif_fibre_command(ips[0])
+                    fibre_result_b = telnet_to_alif_fibre_command(ips[1])
                     fibre_a_flag = "Link UP" in fibre_result_a
                     fibre_b_flag = "Link UP" in fibre_result_b
                 else:
-                    net_result_a = telnet_to_alif_net_command(value[0])
-                    net_result_b = telnet_to_alif_net_command(value[1])
+                    net_result_a = telnet_to_alif_net_command(ips[0])
+                    net_result_b = telnet_to_alif_net_command(ips[1])
                  
                 net_a_flag = "SYNC OK; AN OK;" in net_result_a
                 net_b_flag = "SYNC OK; AN OK;" in net_result_b
@@ -103,18 +106,27 @@ if __name__ == "__main__":
                 """
                 Form the results line for logging and append it to the list of results
                 """
-                if key == "CopperSFP":
+                if module == "CopperSFP 10/100/1000 RJ45 SGMI":
                     results.append("{} 'fibre phy 1' check {} {}\n" +
-                                   "{} 'net 8' check {} {}".format(key, fibre_a_flag, fibre_b_flag,
-                                                                   key, net_a_flag, net_b_flag))
+                                   "{} 'net 8' check {} {}".format(module, fibre_a_flag, fibre_b_flag,
+                                                                   module, net_a_flag, net_b_flag))
                 else:
-                    results.append("{} 'net 8' check {} {}".format(key, net_a_flag, net_b_flag))
+                    results.append("{} 'net 8' check {} {}".format(module, net_a_flag, net_b_flag))
             
             """
             Log each result in turn
             """
+            failed = False
             for result in results:
                 logging.info("ADDER: {}".format(result))
+                if "False" in result:
+                    failed = True
+            if failed:
+                fails += 1
+            else:
+                passes += 1
+                
+            logging.info("=====ADDER: PASSED {} FAILED {}=====".format(passes, fails))
                 
         except KeyboardInterrupt:
             logging_stop()
